@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Lab.Chat.Configuration;
 using Lab.Chat.Filters;
+using Amazon.DynamoDBv2;
 
 namespace Lab.Chat
 {
@@ -20,6 +21,8 @@ namespace Lab.Chat
             .AddJsonOptions(options => options.JsonSerializerOptions.Default());
 
             services.AddSwaggerDocumentation();
+
+            services.AddAWSService<IAmazonDynamoDB>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

@@ -1,0 +1,91 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: Lab Chat
+
+Parameters:
+
+  Environment:
+    Type: String
+    Description: Set the deployment environment.
+    AllowedValues:
+      - Development
+      - Staging
+      - Production
+
+Mappings:
+
+  EnvironmentToPathBaseMap:
+    Development:
+      PathBase: /development
+    Staging:
+      PathBase: /staging
+    Production:
+      PathBase: /
+
+Globals:
+
+  Api:
+    OpenApiVersion: 3.0.1
+
+Resources:
+
+  App:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: lab.chat
+      Handler: Lab.Chat::Lab.Chat.LambdaEntryPoint::FunctionHandlerAsync
+      Runtime: dotnetcore3.1
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          ASPNETCORE_ENVIRONMENT: !Ref Environment
+          ASPNETCORE_LOGGING__CONSOLE__DISABLECOLORS: true
+          ASPNETCORE_PATH_BASE: !FindInMap [EnvironmentToPathBaseMap, !Ref Environment, PathBase]
+          ASPNETCORE_Logging__IncludeLogLevel: true
+          ASPNETCORE_Logging__IncludeCategory: true
+          ASPNETCORE_Logging__IncludeNewline: true
+          ASPNETCORE_Logging__IncludeException: true
+          ASPNETCORE_Logging__IncludeEventId: false
+          ASPNETCORE_Logging__IncludeScopes: false
+          ASPNETCORE_Logging__LogLevel__Default: Information
+          ASPNETCORE_Logging__LogLevel__Microsoft: Warning
+          ASPNETCORE_Logging__LogLevel__System: Warning
+      Tags:
+        - key: Name
+          Value: lab.chat:Lambda
+    Events:
+      AnyHttpRequest:
+        Type: Api
+        Properties:
+          Path: "/{proxy+}"
+          Method: ANY
+          RestApiId: lab.chat
+
+  Gateway:
+    Type: AWS::Serverless::Api
+    StageName: !Ref Environment
+    Properties:
+      Name: lab.chat
+    Tags:
+      - key: Name
+        Value: lab.chat:ApiGateway
+
+  Database:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    Properties:
+      TableName: lab.chat
+      KeySchema:
+        - AttributeName: PartitionKey
+          KeyType: HASH
+        - AttributeName: SortKey
+          KeyType: RANGE
+      AttributeDefinitions:
+        - AttributeName: PartitionKey
+          AttributeType: S
+        - AttributeName: SortKey
+          AttributeType: S
+      Tags:
+        - key: Name
+          Value: lab.chat:DynamoDB

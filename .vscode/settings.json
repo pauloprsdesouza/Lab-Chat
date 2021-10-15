@@ -28,5 +28,11 @@
   },
   "[sql]": {
     "editor.tabSize": 4
+  },
+  "rest-client.environmentVariables": {
+    "$shared": {},
+    "local":{
+      "baseUrl": "http://localhost:5000"
+    }
   }
 }
