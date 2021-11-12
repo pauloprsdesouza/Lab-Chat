@@ -1,5 +1,7 @@
 AWSTemplateFormatVersion: 2010-09-09
 
+Transform: AWS::Serverless-2016-10-31
+
 Description: Lab Chat
 
 Parameters:
@@ -13,7 +15,13 @@ Parameters:
       - Production
 
 Mappings:
-
+  StageNameMap:
+    Development:
+      StageName: dev
+    Staging:
+      StageName: stg
+    Production:
+      StageName: prod
   EnvironmentToPathBaseMap:
     Development:
       PathBase: /development
@@ -29,10 +37,10 @@ Globals:
 
 Resources:
 
-  App:
+  Lambda:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: lab.chat
+      FunctionName: lab-chat
       Handler: Lab.Chat::Lab.Chat.LambdaEntryPoint::FunctionHandlerAsync
       Runtime: dotnetcore3.1
       MemorySize: 1024
@@ -51,41 +59,41 @@ Resources:
           ASPNETCORE_Logging__LogLevel__Default: Information
           ASPNETCORE_Logging__LogLevel__Microsoft: Warning
           ASPNETCORE_Logging__LogLevel__System: Warning
+      Events:
+        AnyHttpRequest:
+          Type: Api
+          Properties:
+            Path: "/{proxy+}"
+            Method: ANY
+            RestApiId: !Ref ApiGateway
+      Role: !Sub arn:aws:iam::${AWS::AccountId}:role/AppLambdaExecutionRole
       Tags:
-        - key: Name
-          Value: lab.chat:Lambda
-    Events:
-      AnyHttpRequest:
-        Type: Api
-        Properties:
-          Path: "/{proxy+}"
-          Method: ANY
-          RestApiId: lab.chat
+          Name: lab-chat:Lambda
 
-  Gateway:
+  ApiGateway:
     Type: AWS::Serverless::Api
-    StageName: !Ref Environment
     Properties:
-      Name: lab.chat
-    Tags:
-      - key: Name
-        Value: lab.chat:ApiGateway
+      StageName: !FindInMap [ StageNameMap, !Ref Environment, StageName ]
+      Name: lab-chat
+      Tags:
+          Name: lab-chat:ApiGateway
 
-  Database:
+  DynamoDBTable:
     Type: AWS::DynamoDB::Table
     DeletionPolicy: Retain
     Properties:
-      TableName: lab.chat
+      TableName: lab-chat
       KeySchema:
-        - AttributeName: PartitionKey
+        - AttributeName: PK
           KeyType: HASH
-        - AttributeName: SortKey
+        - AttributeName: SK
           KeyType: RANGE
       AttributeDefinitions:
-        - AttributeName: PartitionKey
+        - AttributeName: PK
           AttributeType: S
-        - AttributeName: SortKey
+        - AttributeName: SK
           AttributeType: S
+      BillingMode: PAY_PER_REQUEST
       Tags:
-        - key: Name
-          Value: lab.chat:DynamoDB
+        - Key: Name
+          Value: lab-chat:DynamoDB
