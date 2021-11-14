@@ -51,7 +51,7 @@ namespace Lab.Chat.Controllers
         }
 
         /// <summary>
-        /// Create messages
+        /// Create a message
         /// </summary>
         /// <remarks>
         /// Send direct messages to another user or group.
@@ -70,10 +70,10 @@ namespace Lab.Chat.Controllers
         }
 
         /// <summary>
-        /// Update messages
+        /// Update a message
         /// </summary>
         /// <remarks>
-        /// Update a message alread sent to another user or group.
+        /// Update a message already sent to another user or group.
         /// </remarks>
         /// <param name="messageId" example="01FME0F949HAVJ91A9100N16ZS">Message's ID</param>
         [HttpPut, Route("{messageId}")]
@@ -99,10 +99,10 @@ namespace Lab.Chat.Controllers
         }
 
         /// <summary>
-        /// Find message
+        /// Find a message
         /// </summary>
         /// <remarks>
-        /// Update a message alread sent to another user or group.
+        /// Find a message already sent to another user or group.
         /// </remarks>
         /// <param name="messageId" example="01FME0F949HAVJ91A9100N16ZS">Message's ID</param>
         [HttpGet, Route("{messageId}")]
@@ -118,6 +118,33 @@ namespace Lab.Chat.Controllers
             {
                 return NotFound(new MessageNotFoundError(messageId.ToString()));
             }
+
+            return Ok(message.MapToResponse());
+        }
+
+        /// <summary>
+        /// Delete a message
+        /// </summary>
+        /// <remarks>
+        /// Delete a message already sent to another user or group.
+        /// </remarks>
+        /// <param name="messageId" example="01FME0F949HAVJ91A9100N16ZS">Message's ID</param>
+        [HttpDelete, Route("{messageId}")]
+        [Produces(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(typeof(MessageResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(MessageNotFoundError), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult> Delete([FromRoute] Ulid messageId)
+        {
+            var messageSearch = new MessageSearch(_dbContext);
+            var message = await messageSearch.Find(UserId, messageId);
+
+            if (messageSearch.MessageNotFound)
+            {
+                return NotFound(new MessageNotFoundError(messageId.ToString()));
+            }
+
+            var messageDelete = new MessageDelete(_dbContext);
+            await messageDelete.Delete(message);
 
             return Ok(message.MapToResponse());
         }
