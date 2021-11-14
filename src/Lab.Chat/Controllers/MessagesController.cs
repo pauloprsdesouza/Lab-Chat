@@ -68,5 +68,34 @@ namespace Lab.Chat.Controllers
 
             return Ok(message.MapToResponse());
         }
+
+        /// <summary>
+        /// Update messages
+        /// </summary>
+        /// <remarks>
+        /// Update a message alread sent to another user or group.
+        /// </remarks>
+        /// <param name="messageId" example="01FME0F949HAVJ91A9100N16ZS">Message's ID</param>
+        [HttpPut, Route("{messageId}")]
+        [Produces(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(typeof(MessageResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(MessageNotFoundError), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult> Update([FromRoute] Ulid messageId, [FromBody] PutMessageRequest putMessageRequest)
+        {
+            var messageSearch = new MessageSearch(_dbContext);
+            var message = await messageSearch.Find(UserId, messageId);
+
+            if (messageSearch.MessageNotFound)
+            {
+                return NotFound(new MessageNotFoundError(messageId.ToString()));
+            }
+
+            putMessageRequest.MapTo(message);
+
+            var messageUpdate = new MessageUpdate(_dbContext);
+            await messageUpdate.Update(message);
+
+            return Ok(message.MapToResponse());
+        }
     }
 }
