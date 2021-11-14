@@ -5,6 +5,10 @@ namespace Lab.Chat.Models.Messages
 {
     public class PostMessageRequest
     {
+        /// <summary>
+        /// Message's content that will be read by a user
+        /// </summary>
+        /// <value></value>
         [Required, MaxLength(150)]
         public string Content { get; set; }
 
