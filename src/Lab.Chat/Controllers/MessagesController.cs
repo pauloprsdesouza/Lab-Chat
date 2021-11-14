@@ -9,7 +9,7 @@ using System.Linq;
 using Lab.Chat.Infrastructure.Database.DataModel.Messages;
 using NUlid;
 using Lab.Chat.Infrastructure.Serialization.Messages;
-using Lab.Chat.Features;
+using Lab.Chat.Features.Messages;
 
 namespace Lab.Chat.Controllers
 {
