@@ -1,6 +1,11 @@
-@messageId = 01FME0F949HAVJ91A9100N16ZA
+@messageId = 01FME0F949HAVJ91A9100N16ZS
 
 GET {{baseUrl}}/messages
+Content-Type: application/json
+
+###
+
+GET {{baseUrl}}/messages/{{messageId}}
 Content-Type: application/json
 
 ###

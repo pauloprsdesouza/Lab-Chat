@@ -97,5 +97,29 @@ namespace Lab.Chat.Controllers
 
             return Ok(message.MapToResponse());
         }
+
+        /// <summary>
+        /// Find message
+        /// </summary>
+        /// <remarks>
+        /// Update a message alread sent to another user or group.
+        /// </remarks>
+        /// <param name="messageId" example="01FME0F949HAVJ91A9100N16ZS">Message's ID</param>
+        [HttpGet, Route("{messageId}")]
+        [Produces(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(typeof(MessageResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(MessageNotFoundError), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult> Find([FromRoute] Ulid messageId)
+        {
+            var messageSearch = new MessageSearch(_dbContext);
+            var message = await messageSearch.Find(UserId, messageId);
+
+            if (messageSearch.MessageNotFound)
+            {
+                return NotFound(new MessageNotFoundError(messageId.ToString()));
+            }
+
+            return Ok(message.MapToResponse());
+        }
     }
 }
