@@ -1,15 +1,27 @@
+using Amazon.DynamoDBv2;
+using Amazon.DynamoDBv2.DataModel;
 using Lab.Chat.Models.Messages;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using NUlid;
-using System;
 using System.Net.Mime;
+using System.Threading.Tasks;
+using System.Linq;
+using Lab.Chat.Infrastructure.Database.DataModel.Messages;
+using NUlid;
+using Lab.Chat.Infrastructure.Serialization.Messages;
 
 namespace Lab.Chat.Controllers
 {
     [Route("messages")]
     public class MessagesController : Controller
     {
+        private readonly DynamoDBContext _dbContext;
+
+        public MessagesController(IAmazonDynamoDB dynamoDB)
+        {
+            _dbContext = new DynamoDBContext(dynamoDB);
+        }
+
         /// <summary>
         /// Get messages
         /// </summary>
@@ -18,16 +30,21 @@ namespace Lab.Chat.Controllers
         /// </remarks>
         [HttpGet]
         [Produces(MediaTypeNames.Application.Json)]
-        [ProducesResponseType(typeof(ListMessageResponse), StatusCodes.Status200OK)]
-        public ActionResult List(){
-            return Ok(new ListMessageResponse{
-                Messages = new[]{
-                    new MessageResponse{
-                        Id = Ulid.NewUlid().ToString(),
-                        Content = "Content Bla",
-                        SentOn = DateTime.Now
-                    }
-                }
+        [ProducesResponseType(typeof(GetMessageResponse), StatusCodes.Status200OK)]
+        public async Task<ActionResult> List([FromQuery] GetMessagesQuery queryString)
+        {
+            var query = new MessageQuery();
+            query.UserId = "1A2B3C4D";
+            query.BeforeMessage = queryString.Before ?? Ulid.NewUlid();
+            query.Length = queryString.Length ?? 30;
+
+            var messages = await _dbContext
+                .FromQueryAsync<Message>(query.ToDynamoDBQuery())
+                .GetRemainingAsync();
+
+            return Ok(new GetMessageResponse
+            {
+                Messages = messages.Select(message => message.MapToResponse())
             });
         }
     }
