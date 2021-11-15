@@ -6,9 +6,9 @@ namespace Lab.Chat.Features.Messages
 {
     public class MessageDelete
     {
-        public readonly DynamoDBContext _dbContext;
+        public readonly IDynamoDBContext _dbContext;
 
-        public MessageDelete(DynamoDBContext dbContext)
+        public MessageDelete(IDynamoDBContext dbContext)
         {
             _dbContext = dbContext;
         }

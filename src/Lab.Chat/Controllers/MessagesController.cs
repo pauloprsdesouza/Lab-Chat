@@ -1,4 +1,3 @@
-using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
 using Lab.Chat.Models.Messages;
 using Microsoft.AspNetCore.Http;
@@ -17,11 +16,11 @@ namespace Lab.Chat.Controllers
     public class MessagesController : Controller
     {
         const string UserId = "1A2B3C4D";
-        private readonly DynamoDBContext _dbContext;
+        private readonly IDynamoDBContext _dbContext;
 
-        public MessagesController(IAmazonDynamoDB dynamoDB)
+        public MessagesController(IDynamoDBContext dbContext)
         {
-            _dbContext = new DynamoDBContext(dynamoDB);
+            _dbContext = dbContext;
         }
 
         /// <summary>
@@ -76,6 +75,7 @@ namespace Lab.Chat.Controllers
         /// Update a message already sent to another user or group.
         /// </remarks>
         /// <param name="messageId" example="01FME0F949HAVJ91A9100N16ZS">Message's ID</param>
+        /// <param name="putMessageRequest">Message's content</param>
         [HttpPut, Route("{messageId}")]
         [Produces(MediaTypeNames.Application.Json)]
         [ProducesResponseType(typeof(MessageResponse), StatusCodes.Status200OK)]
